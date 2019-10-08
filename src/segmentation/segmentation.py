@@ -3,7 +3,7 @@
 import numpy
 import torch
 import torch.nn as nn
-from src.segmentation.resnet import resnet34
+from segmentation.resnet import resnet34
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt

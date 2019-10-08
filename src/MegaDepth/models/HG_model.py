@@ -2,9 +2,9 @@ import numpy as np
 import torch
 import os
 from torch.autograd import Variable
-from src.MegaDepth.models.base_model import BaseModel
+from MegaDepth.models.base_model import BaseModel
 import sys
-import src.MegaDepth.pytorch_DIW_scratch as pytorch_DIW_scratch
+import MegaDepth.pytorch_DIW_scratch as pytorch_DIW_scratch
 
 class HGModel(BaseModel):
     def name(self):

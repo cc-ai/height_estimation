@@ -3,9 +3,9 @@
 
 from math import tan, atan, sin, cos, radians, degrees
 import numpy as np
-from src.BoundingBox3D.torch_lib.Dataset import DetectedObject
+from BoundingBox3D.torch_lib.Dataset import DetectedObject
 import torch
-from src.BoundingBox3D.torch_lib import Model, ClassAverages
+from BoundingBox3D.torch_lib import Model, ClassAverages
     
 def get_rotation_matrix(epsilon):
     return(np.array([[1,0,0], [0, cos(epsilon), -sin(epsilon)], [0, sin(epsilon), cos(epsilon)]]))

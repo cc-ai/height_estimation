@@ -1,4 +1,4 @@
-from src.MegaDepth.options.base_options import BaseOptions
+from MegaDepth.options.base_options import BaseOptions
 
 class TrainOptions(BaseOptions):
     def initialize(self):
