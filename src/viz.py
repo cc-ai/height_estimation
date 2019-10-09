@@ -7,7 +7,7 @@ from PIL import Image
 import cv2
 import numpy as np
 
-def show_2D_bbox(img_file, detections):
+def show_2D_bbox(img_file, detections, save_path = None):
     # plot 2D bounding box
     im = cv2.imread(img_file)[...,::-1]#np.array(Image.open(img_file), dtype=np.uint8)
     print(im.shape)
@@ -22,7 +22,8 @@ def show_2D_bbox(img_file, detections):
 
         # Add the patch to the Axes
         ax.add_patch(rect)
-
+    if not save_path is None: 
+        plt.savefig(save_path)
     plt.show()
     
 def show_seg_mask(mask_file):
