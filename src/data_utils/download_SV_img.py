@@ -8,6 +8,7 @@ import google_streetview.api as gsv_api
 import google_streetview.helpers as gsv_helpers
 import numpy as np 
 import os
+from PIL import Image
 
 def param_block(address, key):
     """
@@ -42,21 +43,28 @@ def get_image_from_gps_adresses(params):
     results = gsv_api.results(api_list)
     return (results)
 
-def get_images(params, folder_path):
+def get_images(params, folder_path, crop_print = 0):
     """
     save the images
     Inputs: 
         params : list of 
         folder_path: path of the folder where to save the images, must end with '/'
+        crop_print : if nonzero, center crops the image by taking out a border crop_print pixels and resize it to original 
     """
     paths = []
     for index, elem in enumerate(params) :     
         results = get_image_from_gps_adresses(elem)
         metadata_file = 'metadata%d.json' % index
         results.download_links(folder_path)
-        os.rename(folder_path + 'gsv_0.jpg',folder_path + 'gsv_'+'{:06d}'.format(index)+'.jpg')
-        paths.append(folder_path + 'gsv_'+'{:06d}'.format(index)+'.jpg')
+        new_path = folder_path + 'gsv_'+'{:06d}'.format(index)+'.jpg'
+        os.rename(folder_path + 'gsv_0.jpg',new_path)
+        im = Image.open(new_path)
+        size = im.size
+        im = im.crop((crop_print,crop_print,size[0]-crop_print,size[1]-crop_print)).resize(size)
+        im.save(new_path)
+        paths.append(new_path)
+        
     print("All images fetched")
     return (paths)
-    
+
 
