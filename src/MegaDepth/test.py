@@ -8,9 +8,9 @@ import torch
 import sys
 from torch.autograd import Variable
 import numpy as np
-from src.MegaDepth.options.train_options import TrainOptions # set CUDA_VISIBLE_DEVICES before import torch
-from src.MegaDepth.data.data_loader import CreateDataLoader
-from src.MegaDepth.models.models import create_model
+from MegaDepth.options.train_options import TrainOptions # set CUDA_VISIBLE_DEVICES before import torch
+from MegaDepth.data.data_loader import CreateDataLoader
+from MegaDepth.models.models import create_model
 from skimage import io
 from skimage.transform import resize
 from PIL import Image
@@ -45,19 +45,21 @@ def test_simple(model, img_path, size, save_path):
     io.imsave(os.path.join(save_path, save_filename), pred_inv_depth)
     print("Image saved to "+ os.path.join(save_path, save_filename))
     Image.open(os.path.join(save_path, save_filename)).show()
+    return(os.path.join(save_path, save_filename))
   #  sys.exit()
 
-def get_depthmap_img(img_path, save_path, size):
+def get_depthmap_img(img_path, save_path, size, checkpoints_dir):
     opt = TrainOptions()
     #print(opt)
     opt.gpu_ids = '0,1'
     opt.isTrain = True
-    opt.checkpoints_dir = '/network/home/tengmeli/src/MegaDepth/checkpoints/'
+    opt.checkpoints_dir = checkpoints_dir
     opt.name = 'test_local/'
     model = create_model(opt)
-    test_simple(model, img_path, size,save_path)
-    print("We are done")
+    path = test_simple(model, img_path, size,save_path)
     
+    print("We are done")
+    return(path)
 
                      
 if __name__ == "__main__":
