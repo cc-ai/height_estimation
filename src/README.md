@@ -1,4 +1,4 @@
-This directory contains the source code for the height estimation pipeline. 
+
 ## Directory Structure
 
 This directory contains the source code for the height estimation pipeline. 
