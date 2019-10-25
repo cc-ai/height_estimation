@@ -103,6 +103,8 @@ def get_coord_threshold_single_detection(threshold, detection,coords, mask, img,
     """
     Get correspondence of metric input vertical threshold in the 3D coordinates recovery units using one detected object as reference.
     This will be used to be averaged over multiple detected objects
+    The Image coordinate system is H,W and the 3D reconstructed system is W,H,Depth
+    
     """
     
     class_ = classes[detection.detected_class]
@@ -125,7 +127,7 @@ def get_coord_threshold_single_detection(threshold, detection,coords, mask, img,
     dim = dim.cpu().data.numpy()[0, :]
     dim += averages.get_item(detection.detected_class)
     print(dim)
-    height_object = dim[1]
+    height_object = dim[0]
     print("height of the detected object of class " + detection.detected_class + " in meters is : " + str(height_object))
     return(hmin+ threshold * (hmax-hmin) /height_object)
 

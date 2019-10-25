@@ -41,11 +41,11 @@ def test_simple(model, img_path, size, save_path):
     pred_inv_depth = pred_inv_depth.data.cpu().numpy()
     # you might also use percentile for better visualization
     pred_inv_depth = pred_inv_depth/np.amax(pred_inv_depth)
-    save_filename = os.path.splitext(os.path.basename(img_path))[0] + '_depth'
+    save_filename = os.path.splitext(os.path.basename(img_path))[0] + '_depth' 
     io.imsave(os.path.join(save_path, save_filename + '.jpg'), pred_inv_depth)
     np.save(os.path.join(save_path, save_filename + '.npy'), pred_inv_depth)
     print("saved to files "+ os.path.join(save_path, save_filename))
-    Image.open(os.path.join(save_path, save_filename)).show()
+    Image.open(os.path.join(save_path, save_filename + '.jpg')).show()
     return(os.path.join(save_path, save_filename))
   #  sys.exit()
 
@@ -62,7 +62,7 @@ def get_depthmap_img(img_path, save_path, size, checkpoints_dir):
     print("We are done")
     return(path)
 
- def default_transforms():
+def default_transforms():
     flip = torchvision.transforms.functional.hflip
     color = torchvision.transforms.ColorJitter(brightness=0.5, contrast=0.4, saturation=0.2, hue=0)
 
@@ -118,10 +118,10 @@ def test_nimage(model, img_path, size, save_path, transforms_):
     
     
 def test_nimage_npy(model, img_path, size, save_path, transforms_, indices_flip):
-   """
-   transforms_: list of tranformations to apply. The model will run on the original image + copies of the original transformed by transforms_. In total the batch will be of size transforms_+1
-   indices_flip: indices of the transforms that have flip (vertical)(if transforms[0] has flip, the index indicated will be 1)
-   """
+    """
+    transforms_: list of tranformations to apply. The model will run on the original image + copies of the original transformed    by transforms_. In total the batch will be of size transforms_+1
+    indices_flip: indices of the transforms that have flip (vertical)(if transforms[0] has flip, the index indicated will be 1)
+    """
     nimage = len(transforms_ + 1)
     print(size)
     input_width, input_height = size
@@ -159,7 +159,7 @@ def test_nimage_npy(model, img_path, size, save_path, transforms_, indices_flip)
     io.imsave(os.path.join(save_path, save_filename + '.jpg'), mean_pred)
     np.save(os.path.join(save_path, save_filename + '.npy'), mean_pred )
     print("Image saved to "+ os.path.join(save_path, save_filename))
-   
+    
 if __name__ == "__main__":
     img_path = '../DataSV/milacropresize.jpg'
     save_path = '.'
