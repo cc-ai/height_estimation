@@ -1,0 +1,86 @@
+#CONFIG FILE TO GENERATE BINARY MASKS OF ALL POINTS BELOW A CHOSEN HEIGHT THRESHOLD
+#Adresses to query - 
+#Choose if you are loading the adresses from a csv file with lat - long columns, or if you just want to try on a sample adresses, fill in the adresses field
+addresses_from_csv: False
+addresses_csv: ""
+addresses: [
+            [45.5306086,-73.6148085],
+            [45.530608, -73.614964],
+            [45.5305405,-73.6155206],
+            [45.530095, -73.615002],
+            [45.530178, -73.614715],
+            [45.529515, -73.622325],
+            [45.524653, -73.596550],
+            [45.522775, -73.603377],
+            [45.523305, -73.604910],
+            [45.5227349,-73.6023362],
+            [45.5231721,-73.6030411],
+            [45.5231552,-73.6024024],
+            [45.5235926,-73.5989186],
+            [45.5236515,-73.5946721],
+            [45.5234785,-73.591241],
+            [45.5146551,-73.588218],
+            [45.5094233,-73.5787649],
+            [45.5051424,-73.578591]
+            ]
+
+# Google StreetView API Key
+key: ""
+
+#where to save the streetview images
+save_SV_path: './gen_masks_data/'
+#how many pixels to crop each side of the image 
+crop: 20
+
+#images size
+img_size: [512,512]
+#Camera parameters (half field of view specify in degrees )
+init_FOVx: 60
+init_FOVy: 60
+
+
+#Path to Megadepth model
+megadepth_path: './MegaDepth/checkpoints/'
+#where to save the depth maps images
+save_DM_path: './gen_masks_data/'
+
+#Path to weights of the YOLO model and 3D BBox model weights
+weights_path: "./BoundingBox3D/weights/"
+yolo_path: "./BoundingBox3D/weights"
+
+
+classes:  {'car': 13, 'truck': 14}
+
+#Thresholds in meters that you want to look at
+thresholds: [0.8, 1.5]
+
+# segmentation model path
+segmentation_path: "/network/tmp1/ccai/checkpoints/roadSegmentation/resnet_34_8s_cityscapes_best.pth"
+
+save_seg_path: './gen_masks_data/'
+
+
+#where to save output
+output_path: './gen_masks_data/masks/'
+
+#do not touch - just to keep in mind what KITTI and CityScapes classes are
+classes_KITTI: ['cyclist', 'van', 'misc', 'tram', 'car', 'person_sitting', 'pedestrian', 'truck']
+cityscapes_classes: [{   0:"road", 
+                        1 : "sidewalk",
+                        2: "building",
+                        3: "wall",
+                        4: "fence",
+                        5: "pole",
+                        6: "traffic light",
+                        7: "traffic sign",
+                        8: "vegetation",
+                        9: "terrain",
+                        10: "sky",
+                        11: "person",
+                        12: "rider",
+                        13: "car",
+                        14: "truck",
+                        15: "bus",
+                        16: "train",
+                        17: "motorcycle",
+                        18: "bicycle"}]

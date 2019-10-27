@@ -81,7 +81,7 @@ class MyDataset_from_list(Dataset):
         path=self.images[index]
         image=Image.open(path).convert('RGB')
         if self.transform is not None:
-           image=self.transform(image)
+            image =self.transform(image)
         return image
     def __len__(self):
         return len(self.images)

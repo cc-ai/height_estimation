@@ -126,7 +126,7 @@ def get_coord_threshold_single_detection(threshold, detection,coords, mask, img,
     averages = ClassAverages.ClassAverages()
     dim = dim.cpu().data.numpy()[0, :]
     dim += averages.get_item(detection.detected_class)
-    print(dim)
+    #print(dim)
     height_object = dim[0]
     print("height of the detected object of class " + detection.detected_class + " in meters is : " + str(height_object))
     return(hmin+ threshold * (hmax-hmin) /height_object)
@@ -136,8 +136,8 @@ def get_thresh_coords_megadepth(img, threshold, depth, FOVx, FOVy, detections, m
     H,W = depth.shape
     cam = get_camera_matrix(H,W,FOVx, FOVy, epsilon)
     
-    coords = get_3D_coords(depth_, FOVx, FOVy, epsilon = radians(10))
-    keep = filter_segmentation(detections,mask , classes, pix_threshold = 0.3)
+    coords = get_3D_coords(depth_, FOVx, FOVy, epsilon)
+    keep = filter_segmentation(detections,mask , classes, pix_threshold)
     thresholds = []
     for index in keep : 
         single_thresh = get_coord_threshold_single_detection(threshold, detections[index], coords, mask, img, cam, model, classes)

@@ -35,12 +35,13 @@ def show_seg_mask(mask_file):
 
 def show_flood(img, threshold, coords, save_path = None):
     fig = plt.figure()
+    H,W,_ = img.shape
     red = [255,0,0]
     #flood everything under threshold
     flood = np.where(coords[:,:,1]< threshold)
-    colors = img.copy().reshape(512,512, 3)
+    colors = img.copy().reshape(H,W, 3)
     colors[flood[0], flood[1], : ] = red
-    flooded_im = colors.reshape(512,512,3)
+    flooded_im = colors.reshape(H,W,3)
 
     img_pil = cv2.cvtColor(flooded_im, cv2.COLOR_BGR2RGB)
     im = Image.fromarray(img_pil)
@@ -48,3 +49,14 @@ def show_flood(img, threshold, coords, save_path = None):
         im.save(save_path)
     return(im)
 
+def generate_binary_mask(img, threshold, coords, save_path = None):
+    H,W,_ = img.shape
+    mask = np.zeros((H,W))
+    flood = np.where(coords[:,:,1]< threshold)
+    mask[flood[0], flood[1]]= 255
+
+    im_mask = Image.fromarray(mask).convert('1')
+
+    if not save_path is None: 
+        im_mask.save(save_path)
+    return(im_mask)
