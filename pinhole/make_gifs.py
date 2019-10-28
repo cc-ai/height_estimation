@@ -64,7 +64,6 @@ def makegif(
     images = []
     max_ratio = 0.5
     threshold = 0
-    zero_ratios = []
 
     while threshold < 1:
         # flood everything under threshold
@@ -72,25 +71,14 @@ def makegif(
         flood = get_flood_idx(coords_proj_, coor_threshold)
         ratio = get_ratio(flood, img)
         if ratio == 0:
-            zero_ratios.append(threshold)
             threshold += step
-            images = []
             continue
         if ratio > max_ratio:
             break
         images.append(color(img, flood))
         threshold += step
 
-    zero_images = []
-    zero_ratios = zero_ratios[-zero_ratios_len:]
-    for threshold in zero_ratios:
-        coor_threshold = get_cood_threshold(threshold, coords_proj_)
-        flood = get_flood_idx(coords_proj_, coor_threshold)
-        ratio = get_ratio(flood, img)
-        zero_images.append(color(img, flood))
-        threshold += step
-
-    images = zero_images + images
+    images = [Image.fromarray(img)] * zero_ratios_len + images
 
     print("{}.gif".format(str(img_path.parent / img_path.stem)))
     images[0].save(
@@ -181,16 +169,43 @@ def make_gifs(img_path, depth_path, max_ratio, step, duration, zero_ratios_len):
 
 
 if __name__ == "__main__":
-    base = (
-        "/Users/victor/Downloads/gsv_000000"
-    )  # Where to find images in formats img.jpg, img_depth.jpg
+
+    """For each image in base/, this procedure creates a gif illustrating the image's flooding
+    process. /!\ images must be in ".jpg" extension, and paired (base/img.jpg, base/img_depth.jpg)
+
+    Each image has a different range of values due to the noise in the scene reconstruction.
+    So we normalise the threshold search to [0; 1]: each pixels whose height is:
+
+        < coords.min() + threshold * (coords.max() - coords.min())
+
+    Is going to be flooded.
+    We search for thresholds as follows:
+        * compute un-normalized threshold
+        * compute ratio of flooded pixels wrt number of pixels
+        * if ratio == 0: continue
+            * and store threshold for later use in non-flooded initial frames
+        * if ratio > max_ratio (typically max_ratio = 0.5 => 50% of pixels flooded)
+            * break
+            * prepend latest 5 thresholds with ratio == 0
+            * >> save gif as "{imgdir}/{img_name}.gif"
+        * else: (interesting case)
+            * "paint" (overwrite) pixels < threshold in blue
+            * store resulting image
+    """
+
+    # Where to find images in formats img.jpg, img_depth.jpg
+    base =  "/Users/victor/Downloads/gsv_000000"
+    # max image ratio to flood (num flooded pixels / num non_flooded)
+    max_ratio = 0.5
+    # Grid search precision
+    step = 1e-3
+    # Total resulting gif duration
+    duration = 3
+    # How many non-flooded frames to prepend to the gif
+    zero_ratios_len = 5
+
     imgs = filter(lambda p: "depth" not in p.name, Path(base).glob("*.jpg"))
+
     for i in imgs:
-        make_gifs(
-            i,
-            i.parent / (i.stem + "_depth.jpg"),
-            max_ratio=0.5,
-            step=1e-3,
-            duration=3,
-            zero_ratios_len=5,
-        )
+        d = i.parent / (i.stem + "_depth.jpg")
+        make_gifs(i, d, max_ratio, step, duration, zero_ratios_len)
