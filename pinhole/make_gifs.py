@@ -80,9 +80,10 @@ def makegif(
 
     images = [Image.fromarray(img)] * zero_ratios_len + images
 
-    print("{}.gif".format(str(img_path.parent / img_path.stem)))
+    gif_name = "{}_{}_{}.gif".format(str(img_path.parent / img_path.stem), step, max_ratio)
+    print(gif_name)
     images[0].save(
-        "{}.gif".format(str(img_path.parent / img_path.stem)),
+        gif_name,
         format="GIF",
         append_images=images[1:],
         save_all=True,
@@ -194,7 +195,7 @@ if __name__ == "__main__":
     """
 
     # Where to find images in formats img.jpg, img_depth.jpg
-    base =  "/Users/victor/Downloads/gsv_000000"
+    base = "/Users/victor/Downloads/gsv_000000"
     # max image ratio to flood (num flooded pixels / num non_flooded)
     max_ratio = 0.5
     # Grid search precision
