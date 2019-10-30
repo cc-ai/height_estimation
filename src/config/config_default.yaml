@@ -35,7 +35,9 @@ crop: 20
 #images size
 img_size: [512,512]
 #Camera parameters (half field of view specify in degrees )
+#horizontal field of view
 init_FOVx: 60
+#vertical field of view
 init_FOVy: 60
 
 
@@ -49,7 +51,7 @@ weights_path: "./BoundingBox3D/weights/"
 yolo_path: "./BoundingBox3D/weights"
 
 
-classes:  {'car': 13, 'truck': 14}
+classes:  {'car': 13, 'truck': 14, 'person_sitting': 10, 'pedestrian': 10}
 
 #Thresholds in meters that you want to look at
 thresholds: [0.8, 1.5]
@@ -59,6 +61,8 @@ segmentation_path: "/network/tmp1/ccai/checkpoints/roadSegmentation/resnet_34_8s
 
 save_seg_path: './gen_masks_data/'
 
+#whether to merge road segmentation mask and flood mask 
+merge_mask: True
 
 #where to save output
 output_path: './gen_masks_data/masks/'
