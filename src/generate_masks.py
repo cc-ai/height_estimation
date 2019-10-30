@@ -31,6 +31,7 @@ import yaml
 import sys
 
 
+
 def generate_masks(config_file = './config/config_default.yaml'):
 
     with open(config_file, 'r') as stream:
@@ -86,36 +87,38 @@ def generate_masks(config_file = './config/config_default.yaml'):
     angle_bins = generate_bins(2)
 
     paths_detect = []
-    mask_paths = []
     for ind, img_file in enumerate(output_paths):
         truth_img = cv2.imread(img_file)
         img = np.copy(truth_img)
         yolo_img = np.copy(truth_img)
         detections = yolo.detect(yolo_img)
-        detections_keep = []
-        for elem in detections: 
-            print(elem.detected_class)
-            if elem.detected_class  in classes.keys():
-                detections_keep.append(elem)
-        print("keeping" + str(len(detections_keep)) + '/' + str(len(detections)) + " detected objects")
-        detections = detections_keep
-        show_2D_bbox(img_file, detections, save_path =  None)
-        #paths_detect.append(path2D_bbox)
-        #we don't save the segmentation images
+        
         masks = segmentation.segment_19classes([img_file], segmentation_path, save_seg_path)
         show_seg_mask(masks[0])
-        mask_paths.append(masks[0])
-
-        depth = np.load(depth_paths[ind])
-
         mask = np.load(masks[0])
+        if len(detections) == 0:
+            #if no object is detected, output mask corresponding to the road
+            im_mask = Image.fromarray(mask == 0 ).convert('1')
+            im_mask.save(os.path.basename(img_file[:-4]) + '_'+ 'ground_mask.jpg')
+        else : 
+            detections_keep = []
+            for elem in detections: 
+                print(elem.detected_class)
+                if elem.detected_class  in classes.keys():
+                    detections_keep.append(elem)
+            print("keeping" + str(len(detections_keep)) + '/' + str(len(detections)) + " detected objects")
+            detections = detections_keep
+            show_2D_bbox(img_file, detections, save_path =  None)
+            #paths_detect.append(path2D_bbox)
 
-        #Enter metric threshold
-        for threshold in thresholds:
-            coords, threshs = get_thresh_coords_megadepth(img, threshold, depth, FOVx, FOVy, detections, mask, classes, model,pix_threshold = 0.3, epsilon = 0)
-            show_flood(img, np.mean(threshs), coords, save_path = save_seg_path + os.path.basename(img_file[:-4]) + '_' + str(threshold).replace('.', '-') +'_flood.jpg')
-            generate_binary_mask(img, np.mean(threshs), coords, output_path + os.path.basename(img_file[:-4]) + '_'+ str(threshold).replace('.', '-') + '_mask.jpg')
-            print( output_path + os.path.basename(img_file[:-4]) + '_'+ str(threshold).replace('.', '-') + '_mask.jpg')
+            depth = np.load(depth_paths[ind])
+
+            #Enter metric threshold
+            for threshold in thresholds:
+                coords, threshs = get_thresh_coords_megadepth(img, threshold, depth, FOVx, FOVy, detections, mask, classes, model,pix_threshold = 0.3, epsilon = 0)
+                show_flood(img, np.mean(threshs), coords, save_path = save_seg_path + os.path.basename(img_file[:-4]) + '_' + str(threshold).replace('.', '-') +'_flood.jpg')
+                generate_binary_mask(img, np.mean(threshs), coords, output_path + os.path.basename(img_file[:-4]) + '_'+ str(threshold).replace('.', '-') + '_mask.jpg')
+                print( output_path + os.path.basename(img_file[:-4]) + '_'+ str(threshold).replace('.', '-') + '_mask.jpg')
 
         print("Done")
 
