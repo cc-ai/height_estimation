@@ -56,14 +56,14 @@ def generate_masks(config_file = './config/config_default.yaml'):
     segmentation_path = config['segmentation_path']
     output_path = config['output_path']
     save_seg_path = config['save_seg_path']
-
-    if not os.path.exists(output_path):
-        os.mkdir(output_path)
-
+    merge_pask = config['merge_mask']
 
     # Download images from the adresses
     output_paths = download_sv.get_images([download_sv.param_block(address, key) for address in addresses],save_SV_path, crop_print=crop) 
-
+    
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
+        
     depth_paths = []
     for img_file in output_paths:
         path_depth = megadepth_test.get_depthmap_img(img_file, save_DM_path, img_size, megadepth_path)
@@ -96,19 +96,20 @@ def generate_masks(config_file = './config/config_default.yaml'):
         masks = segmentation.segment_19classes([img_file], segmentation_path, save_seg_path)
         show_seg_mask(masks[0])
         mask = np.load(masks[0])
-        if len(detections) == 0:
-            #if no object is detected, output mask corresponding to the road
-            im_mask = Image.fromarray(mask == 0 ).convert('1')
-            im_mask.save(os.path.basename(img_file[:-4]) + '_'+ 'ground_mask.jpg')
-        else : 
-            detections_keep = []
-            for elem in detections: 
-                print(elem.detected_class)
-                if elem.detected_class  in classes.keys():
-                    detections_keep.append(elem)
-            print("keeping" + str(len(detections_keep)) + '/' + str(len(detections)) + " detected objects")
-            detections = detections_keep
-            show_2D_bbox(img_file, detections, save_path =  None)
+        
+        detections_keep = []
+        for elem in detections: 
+            print(elem.detected_class)
+            if elem.detected_class  in classes.keys():
+                detections_keep.append(elem)
+        print("keeping" + str(len(detections_keep)) + '/' + str(len(detections)) + " detected objects")
+        detections = detections_keep
+        show_2D_bbox(img_file, detections, save_path =  None)
+        ground = Image.fromarray(mask == 0 ).convert('1')
+        #if no object is detected, output will be the mask corresponding to the road
+        ground.save( output_path + os.path.basename(img_file[:-4]) + '_'+ 'ground_mask.jpg')
+        
+        if len(detections_keep) =!= 0:
             #paths_detect.append(path2D_bbox)
 
             depth = np.load(depth_paths[ind])
@@ -117,9 +118,14 @@ def generate_masks(config_file = './config/config_default.yaml'):
             for threshold in thresholds:
                 coords, threshs = get_thresh_coords_megadepth(img, threshold, depth, FOVx, FOVy, detections, mask, classes, model,pix_threshold = 0.3, epsilon = 0)
                 show_flood(img, np.mean(threshs), coords, save_path = save_seg_path + os.path.basename(img_file[:-4]) + '_' + str(threshold).replace('.', '-') +'_flood.jpg')
-                generate_binary_mask(img, np.mean(threshs), coords, output_path + os.path.basename(img_file[:-4]) + '_'+ str(threshold).replace('.', '-') + '_mask.jpg')
+                binary_mask = generate_binary_mask(img, np.mean(threshs), coords, output_path + os.path.basename(img_file[:-4]) + '_'+ str(threshold).replace('.', '-') + '_mask.jpg')
                 print( output_path + os.path.basename(img_file[:-4]) + '_'+ str(threshold).replace('.', '-') + '_mask.jpg')
-
+                
+                #merge ground + flood masks
+                if merge_mask:
+                    output_mask = Image.fromarray(np.array(binary_mask) + np.array(ground))
+                    output_mask.save(output_path + os.path.basename(img_file[:-4]) + '_'+ str(threshold).replace('.', '-') + '_ground_mask.jpg')            
+            
         print("Done")
 
 
