@@ -51,7 +51,6 @@ def generate_masks(config_file = './config/config_default.yaml'):
     img_size = config['img_size']
     H, W = img_size
     FOVx = 2*atan(tan(radians(config['init_FOVx']))*((W/2)-crop)/(W/2))
-    FOVy = 2*atan(tan(radians(config['init_FOVy']))*((H/2)-crop)/(H/2))
     thresholds = config['thresholds']
     segmentation_path = config['segmentation_path']
     output_path = config['output_path']
@@ -116,7 +115,7 @@ def generate_masks(config_file = './config/config_default.yaml'):
 
             #Enter metric threshold
             for threshold in thresholds:
-                coords, threshs = get_thresh_coords_megadepth(img, threshold, depth, FOVx, FOVy, detections, mask, classes, model,pix_threshold = 0.3, epsilon = 0)
+                coords, threshs = get_thresh_coords_megadepth(img, threshold, depth, FOVx,  detections, mask, classes, model,pix_threshold = 0.3, epsilon = 0)
                 show_flood(img, np.mean(threshs), coords, save_path = save_seg_path + os.path.basename(img_file[:-4]) + '_' + str(threshold).replace('.', '-') +'_flood.jpg')
                 binary_mask = generate_binary_mask(img, np.mean(threshs), coords, output_path + os.path.basename(img_file[:-4]) + '_'+ str(threshold).replace('.', '-') + '_mask.jpg')
                 print( output_path + os.path.basename(img_file[:-4]) + '_'+ str(threshold).replace('.', '-') + '_mask.jpg')
