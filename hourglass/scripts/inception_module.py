@@ -44,9 +44,11 @@ class InceptionS(nn.Module):
     """
     Inception module with 1x1, 3x3, 5x5, 7x7 size filters
     """
-    def __init__(self, in_channels, inter_dim, out_channels):
+    def __init__(self, in_channels, inter_dim, out_ch):
         super(InceptionS, self).__init__()
-
+        
+        #in each branch, #out_channels is a quarter of the #ouput of the block because we concatenate the branche
+        out_channels = int(out_ch/4)
         self.conv1x1 = ConvReluBN(in_channels, out_channels, kernel_size=1)
         self.conv3x3 = ConvReluBNbranch(
             in_channels, inter_dim, out_channels, kernel_size=3)
@@ -66,9 +68,10 @@ class InceptionL(nn.Module):
     """
     Inception module with 1x1, 3x3, 7x7, 11x11 size filters
     """
-    def __init__(self, in_channels, inter_dim, out_channels):
+    def __init__(self, in_channels, inter_dim, out_ch):
         super(InceptionL, self).__init__()
-        
+        #in each branch, #out_channels is a quarter of the #ouput of the block because we concatenate the branches
+        out_channels = int(out_ch/4)
         self.conv1x1 = ConvReluBN(in_channels, out_channels, kernel_size=1)
         self.conv3x3 = ConvReluBNbranch(
             in_channels, inter_dim, out_channels, kernel_size=3)
