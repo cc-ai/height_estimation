@@ -10,7 +10,7 @@ class ConvReluBN(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, **kwargs):
         super(ConvReluBN, self).__init__()
         
-        self.conv = []
+        self.conv = nn.ModuleList()
         self.conv.append(nn.Sequential(
         nn.Conv2d(in_channels, out_channels, kernel_size),
         nn.BatchNorm2d(out_channels, affine=False),
@@ -58,10 +58,10 @@ class InceptionS(nn.Module):
             in_channels, inter_dim, out_channels, kernel_size=7)
 
     def forward(self, x):
-        branch1x1 = self.conv1x1.forward(x)
-        branch3x3 = self.conv3x3.forward(x)
-        branch5x5 = self.conv5x5.forward(x)
-        branch7x7 = self.conv7x7.forward(x)
+        branch1x1 = self.conv1x1(x)
+        branch3x3 = self.conv3x3(x)
+        branch5x5 = self.conv5x5(x)
+        branch7x7 = self.conv7x7(x)
         return torch.cat([branch1x1, branch3x3, branch5x5, branch7x7], dim=1)
 
 class InceptionL(nn.Module):
@@ -81,10 +81,10 @@ class InceptionL(nn.Module):
             in_channels, inter_dim, out_channels, kernel_size=11)
 
     def forward(self, x): 
-        branch1x1 = self.conv1x1.forward(x)
-        branch3x3 = self.conv3x3.forward(x)
-        branch7x7 = self.conv7x7.forward(x)
-        branch11x11 = self.conv11x11.forward(x)
+        branch1x1 = self.conv1x1(x)
+        branch3x3 = self.conv3x3(x)
+        branch7x7 = self.conv7x7(x)
+        branch11x11 = self.conv11x11(x)
         return torch.cat([branch1x1, branch3x3, branch7x7, branch11x11], dim=1)
 
 if __name__ == "__main__":
@@ -92,6 +92,6 @@ if __name__ == "__main__":
     x = Variable(torch.rand(2,128,125,125))
     testL = InceptionL(128,  64, 64)
     testS = InceptionS(128, 32, 128)
-    print(testS.forward(x))
-    print(testL.forward(x))
+    print(testS(x))
+    print(testL(x))
     
