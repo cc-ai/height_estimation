@@ -79,13 +79,13 @@ class HeightDataset(data.Dataset):
         impath = self.imlist[index]
         gtpath = self.gtlist[index]
         img = self.floader(os.path.join(self.root, impath))
-        gt = self.gtloader(os.path.join(self.root, gtpath)).unsqueeze(0).unsqueeze(0)
+        gt = self.gtloader(os.path.join(self.root, gtpath)).unsqueeze(0)
         if not self.transform is None:
-            img, gt = self.transform(img, gt) 
-        return {'image': img, 'mask' : gt}
+            return(self.transform(img, gt))
+        return {'image': transform.ToTensor()(img), 'mask' : gt}
     
     def __len__(self):
-        return (len(self.imlist), len(self.gtlist))
+        return (len(self.imlist))
     
     def set_transform(self, transform):
         """This method will replace the current transformation for the
@@ -105,7 +105,7 @@ class HeightDataset(data.Dataset):
         Returns:
             tuple: params (i, j, h, w) to be passed to ``crop`` for random crop.
         """
-        h, w = img.shape[2:]
+        h, w = img.shape[1:]
         th, tw =  self.crop_size
         if w == tw and h == th:
             return (0, 0, h, w)
@@ -116,7 +116,7 @@ class HeightDataset(data.Dataset):
     def transform(self, image, mask):
 
         image_ = transforms.ColorJitter(brightness=0.5, contrast=0.5)(image)
-        img = transforms.ToTensor()(image_).unsqueeze(0)
+        img = transforms.ToTensor()(image_)#.unsqueeze(0)
         print(img.shape)
         if not self.resize_size is None : 
             # Resize
@@ -130,16 +130,16 @@ class HeightDataset(data.Dataset):
         if not self.crop_size is None :
             # Random crop
             i, j, h, w = self.get_rcrop_params(img)
-            img = img[:, :,i:i+h, j:j+w]
-            mask = mask[:, :,i:i+h, j:j+w]
+            img = img[:, i:i+h, j:j+w]
+            mask = mask[ :,i:i+h, j:j+w]
             print(img.shape)
             
         # Random vertical flipping
         if random.random() > 0.5:
-            img = torch.flip(img, (3, ))
-            mask = torch.flip(mask, (3, ))
+            img = torch.flip(img, (2, ))
+            mask = torch.flip(mask, (2, ))
             print(img.shape)
-        return transforms.ToPILImage()(img.squeeze(0)), mask
+        return {'image': img, 'mask' : mask}#transforms.ToPILImage()(img.squeeze(0)), 'mask' : mask}
 
          
 def make_dataset(dir):
