@@ -2,7 +2,7 @@
 # coding: utf-8
 
 
-from math import tan, atan, sin, cos, pi, radians
+from math import tan, atan, sin, cos, pi, radians, degrees
 import json
 import os
 from PIL import Image
@@ -42,7 +42,10 @@ def get_intrinsic_matrix(H,W,FOV = 100):
        
     """
     FOVx = radians(FOV)
-    FOVy = 2*atan(H/W * tan(radians(FOV)/2))
+    print(FOVx)
+    print(degrees( tan(radians(FOV)/2)* (H/W) ))
+    FOVy = 2*atan((H/W) * tan(radians(FOV)/2))
+    print(FOVy)
     cx = (W/2)
     cy = (H/2)
 
@@ -80,7 +83,7 @@ def get_3D_coords(depth_metric, inv_Kc, camera_height = 1.4, epsilon = -15):
     coords3[:, 1] = np.multiply(coords3[:, 1],coords3[:, 2])
 
     #get the coordinates in the camera coordinate system
-    coords_proj = np.transpose(inv_Kc @ np.transpose(coords3))
+    coords_proj = np.transpose(np.matmul(inv_Kc , np.transpose(coords3)))
     
     #take into account rotation due to camera pitch (suppose roll is 0 )
     rotation = np.array(
@@ -88,7 +91,7 @@ def get_3D_coords(depth_metric, inv_Kc, camera_height = 1.4, epsilon = -15):
     )
     # we actually right apply the transpose of the rotation matrix  which is the same as left applying the transpose matrix 
     #from camera coordinate system to real
-    coords_proj_ =coords_proj@np.transpose(rotation)
+    coords_proj_ =np.matmul(coords_proj, np.transpose(rotation)) 
     
     #pinhole inverses left right too 
     coords_proj_[:,0] = -coords_proj_[:,0]
@@ -204,10 +207,15 @@ def generate_height_dataset(depth_paths, save_path, camera_params, rgb_paths = N
         sky0, sky1 = np.where(depth_metric==far)
         H, W = depth_metric.shape
         coords_proj_ = get_3D_coords(depth_metric, inv_Kc, camera_height, epsilon)
+
         save = os.path.join(save_path, str(depth_path.stem) + '_height.npy')
         
         height_array = coords_proj_[:, 1].reshape((H,W))
-        height_array[sky0, sky1] = np.inf
+        
+        #shift heigths to start at 0 
+        height_array += np.min(height_array)
+        #clip sky to -1
+        height_array[sky0, sky1] = -1
         #save height array
         np.save(save, height_array)
         
@@ -226,6 +234,7 @@ if __name__ == "__main__":
     print(args)
     print("Generating depth dataset")
     p = Path(args.save_path)
+    print(os.curdir)
     p.mkdir(parents=True, exist_ok=True)
     print("Saving to " + args.save_path)
     depth_paths = sorted(list(Path(args.depth_folder).glob('depth*.png')))
