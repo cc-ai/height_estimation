@@ -213,7 +213,7 @@ def generate_height_dataset(depth_paths, save_path, camera_params, rgb_paths = N
         height_array = coords_proj_[:, 1].reshape((H,W))
         
         #shift heigths to start at 0 
-        height_array += np.min(height_array)
+        height_array -= np.min(height_array)
         #clip sky to -1
         height_array[sky0, sky1] = -1
         #save height array
