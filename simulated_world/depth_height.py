@@ -30,8 +30,8 @@ def convert_depth(im_array, far):
     G = im_array[:,:,1]
     B = im_array[:,:,2]
     
-    R = ((247 - R) /8).astype(float)
-    G = ((247 - G)/8).astype(float)
+    R = ((247 - R) //8).astype(float)
+    G = ((247 - G)//8).astype(float)
     B = (255 - B).astype(float)
     depth = ((R*256*31 + G*256 + B).astype(float))/ (256*31*31 - 1)
     return(depth*far)
@@ -50,7 +50,10 @@ def get_camera_params_from_json(json_file, water_height = 0.45):
         data = json.load(file)
     FOVy = data['CameraFOV']
     height = data['CameraPosition']['y'] - data['WaterLevel'] + water_height
-    pitch = 360 - data['CameraRotation']['x']
+    if data['CameraRotation']['x'] <= 180:
+        pitch = -data['CameraRotation']['x']
+    else : 
+        pitch = 360 - data['CameraRotation']['x']
     far = data['CameraFar']
     return {'cam_height': height, 'pitch': pitch, 'FOVy' : FOVy, 'far' : far}
     
@@ -67,7 +70,7 @@ def get_intrinsic_matrix_vFOV(H,W,FOVy):
        
     """
     FOVy = radians(FOVy)
-    FOVx = 2*atan((W/H) * tan(radians(FOVy)/2))
+    FOVx = 2*atan((W/H) * tan(FOVy/2))
     cx = (W/2)
     cy = (H/2)
 
@@ -84,11 +87,11 @@ def rotation_matrix_pitch(pitch):
     """
     pitch : pitch in degrees
     """
-    pitch = radians(pitch)
+    pitch_ = radians(pitch)
     return (np.array(
                         [[1, 0, 0], 
-                         [0, cos(pitch), -sin(pitch)],
-                         [0, sin(pitch), cos(pitch)]]
+                         [0, cos(pitch_), -sin(pitch_)],
+                         [0, sin(pitch_), cos(pitch_)]]
                      )
               )
 
@@ -132,7 +135,7 @@ def get_3D_coords(depth_metric, inv_Kc, camera_height, pitch = 0):
 def get_height(img_file, json_file, water_height = 0.45):
     """
     Arguments:
-        img_file{str} : path to img file
+        img_file{str} : path to depth img file
         json_file{str} : path to json
         water_height {float} : height of water wrt to ground in cm
     Returns: 
@@ -182,7 +185,7 @@ def fix_ground_outlier(height_array, seg_array):
     
 ############### Visualizations #############################################################################################
 def normalize(array):
-    return((array - np.min(array))/(np.max(input) - np.min(array)))
+    return((array - np.min(array))/(np.max(array) - np.min(array)))
 
 def plot_logdepth(depth, far): 
     """
