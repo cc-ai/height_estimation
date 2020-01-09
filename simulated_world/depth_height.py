@@ -110,27 +110,27 @@ def get_3D_coords(depth_metric, inv_Kc, camera_height, pitch = 0):
     H, W = depth_metric.shape
     #get grid of pixel coordinates (2D)
     coord1, coord2 =  np.mgrid[range(H), range(W)]
-    coords_plane = np.c_[coord2.ravel(), coord1.ravel()]
-    #add third dimension: depth, put minus because in the pinhole camera model the image is upside down
-    coords3 = np.append(coords_plane, -np.expand_dims(depth_metric.flatten(), axis = 1), axis = 1)    
+    
+    #create array (H,W,3) from which to compute 3d coords (x (horizontal), y (vertical), z (depth)) for each pixel
+    coords3 = np.zeros((H,W,3))
+    coords3[:,:,-1] =  depth_metric
 
-    coords3[:, 0] = np.multiply(coords3[:, 0],coords3[:, 2])
-    coords3[:, 1] = np.multiply(coords3[:, 1],coords3[:, 2])
-
-    #get the coordinates in the camera coordinate system
-    coords_proj = np.transpose(np.matmul(inv_Kc , np.transpose(coords3)))
+    coords3[:,:,0] = np.multiply(coord2, coords3[:,:,2])
+    coords3[:,:, 1] = np.multiply(coord1, coords3[:,:,2])
     
     #take into account rotation due to camera pitch (suppose roll is 0 )
     rotation = rotation_matrix_pitch(pitch)
-    # we actually right apply the transpose of the rotation matrix  which is the same as left applying the transpose matrix 
-    #from camera coordinate system to real
-    coords_proj_ =np.matmul(coords_proj, np.transpose(rotation)) 
     
-    #pinhole inverses left right too 
-    coords_proj_[:,0] = -coords_proj_[:,0]
+    #get the coordinates in the camera coordinate system
+    coords_proj = np.transpose(np.dot(np.dot(np.transpose(rotation),inv_Kc),np.transpose(coords3.reshape(H*W,3))))
+    
+    #the pinhole model make a 180° rotation of the image
+    #pinhole inverses left right 
+    coords_proj[:,0] = -coords_proj[:,0]
+    #pinhole inverses top bottom 
     #add translation (camera level is 0 but in real it's camera_height above ground)
-    coords_proj_[:,1] = coords_proj_[:,1]  + camera_height
-    return(coords_proj_)
+    coords_proj[:,1] = - coords_proj[:,1]  + camera_height
+    return(coords_proj)
 
 def get_height(img_file, json_file, water_height = 0.45):
     """
@@ -139,7 +139,10 @@ def get_height(img_file, json_file, water_height = 0.45):
         json_file{str} : path to json
         water_height {float} : height of water wrt to ground in cm
     Returns: 
+        depth_metric
+        coords
         height map np.array
+        params (camera parameters) 
     """
     params = get_camera_params_from_json(json_file, water_height)
     print(params)
