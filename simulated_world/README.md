@@ -87,6 +87,6 @@ the multiplication by z on pixel coordinates can be understood with homogeneous 
 
 
 If the pitch <img src = " https://latex.codecogs.com/gif.latex?$\epsilon$">of the camera is <img src = " https://latex.codecogs.com/gif.latex?$\neq$"> 0, we can then compute the coordinates in the "real world" coordinate system (not rotated). 
-<img src =https://latex.codecogs.com/gif.latex?$$\left[\begin{array}&space;{r}x'\\&space;y'&space;\\&space;z'&space;\end{array}\right]&space;=&space;\left[\begin{array}&space;{rrr}1&space;&&space;0&space;&&space;0&space;\\&space;0&space;&&space;cos(-\epsilon)&space;&&space;-sin(-\epsilon)&space;\\&space;0&space;&&space;sin(-\epsilon)&space;&&space;cos(-\epsilon)&space;\end{array}\right]&space;\left[\begin{array}&space;{r}x\\&space;y&space;\\&space;z&space;\end{array}\right]&space;$$"> 
+<img src ="https://latex.codecogs.com/gif.latex?$$\left[\begin{array}&space;{r}x'\\&space;y'&space;\\&space;z'&space;\end{array}\right]&space;=&space;\left[\begin{array}&space;{rrr}1&space;&&space;0&space;&&space;0&space;\\&space;0&space;&&space;cos(-\epsilon)&space;&&space;-sin(-\epsilon)&space;\\&space;0&space;&&space;sin(-\epsilon)&space;&&space;cos(-\epsilon)&space;\end{array}\right]&space;\left[\begin{array}&space;{r}x\\&space;y&space;\\&space;z&space;\end{array}\right]&space;$$"> 
 
 For more details on the pinhole camera model, you can refer to this lecture : http://vision.stanford.edu/teaching/cs131_fall1516/lectures/lecture8_camera_models_cs131.pdf
