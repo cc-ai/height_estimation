@@ -122,6 +122,8 @@ def get_3D_coords(depth_metric, inv_Kc, camera_height, pitch = 0):
     rotation = rotation_matrix_pitch(pitch)
     
     #get the coordinates in the camera coordinate system
+    # transpose of rotation matric is its inverse
+    #  Conventionally, a positive rotation angle corresponds to a counterclockwise rotation. 
     coords_proj = np.transpose(np.dot(np.dot(np.transpose(rotation),inv_Kc),np.transpose(coords3.reshape(H*W,3))))
     
     #the pinhole model make a 180° rotation of the image
@@ -166,24 +168,31 @@ def get_height(img_file, json_file, water_height = 0.45):
     
     #shift heigths to start at 0 
     #height_array -= np.min(height_array)
-    #clip sky to -1
-    height_array[sky0, sky1] = -1
+    #clip sky to -100
+    height_array[sky0, sky1] = -100
 
     return(depth_metric, coords, height_array, params)
 
-def fix_ground_outlier(height_array, seg_array):
+def fix_ground_outlier(height_array, seg_array, depth_array, depth_threshold):
     """
-    look at pixels segmented as water or terrain(later on we would like to merge terrain and ground but for the moment we only 
-    have segmentation maps of flooded images, and look at the height distribution. 
-    Low height outliers of the distribution are clipped to the smallest value in the distribution greater than 
-    mean - standard deviation
+    It can happen that there are outlier height points - especially for far away points
+    The goal is to set the zero to correspond to some point of the ground in order to compute height
+    However, due to outlier points, we canot just shift the whole height map using the minimum height value. 
+    Empirically we notice that most of the "problems" occur on far away points, so we take the min value to make the zero level shift
+    to be the min value of height on points that belong to ground and that are less than a certain depth threshold away from the camera.
+    
+    - look at pixels segmented as water or terrain(later on we would like to merge terrain and ground but for the moment we only 
+    have segmentation maps of flooded images.
+    - look at points that a less than depth_threshold away from the camera 
+    - take the min value
+    - make the shift with this value 
+    
     """
     #[0,0,255, 255] corresponds to water segmentation, [255, 97, 0, 255] to terrain]
-    indices =  np.where(np.all(seg == [255, 97, 0, 255], axis = -1) | np.all(seg == [0, 0, 255, 255], axis = -1))  
-    m = np.mean(height_array[indices])
-    s = np.std(height_array[indices])
-    min_value = np.min(height_array[height_array < (m - s)])
-    height_array[height_array< (m-s)] = min_value
+    indices =  np.where((np.all(seg == [255, 97, 0, 255], axis = -1) | np.all(seg == [0, 0, 255, 255], axis = -1))& (depth_array< depth_threshold) )  
+    min_value = np.min(height_array[indices[0], indices[1]])
+    #reset 0 
+    height_array = height_array - min_value
     return(height_array)
     
 ############### Visualizations #############################################################################################
