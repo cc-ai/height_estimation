@@ -173,7 +173,7 @@ def get_height(img_file, json_file, water_height = 0.45):
 
     return(depth_metric, coords, height_array, params)
 
-def fix_ground_outlier(height_array, seg_array, depth_array, depth_threshold):
+def fix_ground_outlier(height_array, seg, depth_array, depth_threshold):
     """
     It can happen that there are outlier height points - especially for far away points
     The goal is to set the zero to correspond to some point of the ground in order to compute height
@@ -190,10 +190,14 @@ def fix_ground_outlier(height_array, seg_array, depth_array, depth_threshold):
     """
     #[0,0,255, 255] corresponds to water segmentation, [255, 97, 0, 255] to terrain]
     indices =  np.where((np.all(seg == [255, 97, 0, 255], axis = -1) | np.all(seg == [0, 0, 255, 255], axis = -1))& (depth_array< depth_threshold) )  
-    min_value = np.min(height_array[indices[0], indices[1]])
-    #reset 0 
-    height_array = height_array - min_value
-    return(height_array)
+    if len(indices[0]) ==0:
+        return(height_array)
+    else: 
+        min_value = np.min(height_array[indices[0], indices[1]])
+        #reset 0 
+        print(min_value)
+        height_array = height_array - min_value
+        return(height_array)
     
 ############### Visualizations #############################################################################################
 def normalize(array):
