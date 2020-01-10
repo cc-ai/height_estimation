@@ -14,15 +14,18 @@ The depth maps are provided as RGBA images. Depth is encoded in the the followin
  - The information from the simulator is (1 - LinearDepth (in [0,1])).   
  `far` corresponds to the furthest distance to the camera included in the depth map. 
         `LinearDepth * far` gives the real metric distance to the camera. 
--  depth is first divided in 31 slices encoded in R channel with values ranging from 0 to 247
+-  depth is first divided in 31 slices encoded in R channel with values ranging from 0 to 247 
 - each slice is divided again in 31 slices, whose value is encoded in G channel
 - each of the G slices is divided into 256 slices, encoded in B channel
-    In total, we have a discretization of depth into `N = 31*31*256 - 1` possible values, covering a range of 
+    In total, we have a discretization of depth into `N = 31*31*256 - 1` possible values, each value covering a range of 
     far/N meters.   
     Note that, what we encode here is  `1 - LinearDepth` so that the furthest point is [0,0,0] (that is sky) 
     and the closest point[255,255,255] 
     The metric distance associated to a pixel whose depth is (R,G,B) is : 
-       ``` d = (far/N) * [((255 - R)//8)*256*31 + ((255 - G)//8)*256 + (255 - B)] ``` 
+    d = (far/N) * [((247 - R)//8)*256*31 + ((247 - G)//8)*256 + (255 - B)]  
+    This is the same as :
+    d = far* ( 1 - ((R//8)*256*31 + (G//8)*256 + B)/N )
+      
 
 ### Segmentation images 
 Segmentation masks are provided for the flooded version of the images. 
@@ -51,3 +54,12 @@ The json files contain the following information:
 - `CameraFar`: how far do we compute the depth map until
 - `CameraFOV`: vertical field of view in degrees
 - `WaterLevel`: absolute level of water in meters
+
+## Preprocessing and recovering 3D metric coordinates
+
+The metric depth map is recovered from the depth images according to the process presented above in the data description.
+The pinhole camera model is applied to recover the 3D metric coordinates. 
+However because some points are very very far away from the camera we end up with heights that can seem outliers to the distribution. 
+Our goal is to find a reference 0 level(ideally ground, where the camera sits) in order to compute height.
+ However, because of the aforementioned issue, we can't just shift the min z value to 0. 
+ In a first approach, what we will do is take the min value on the first 20 meters and consider that the 0 must be in these first 20 meters.
