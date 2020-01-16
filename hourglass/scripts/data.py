@@ -4,6 +4,7 @@ import torch
 import torch.utils.data as data
 from PIL import Image
 from torchvision import transforms
+import torch.nn.functional as F
 import torchvision.transforms.functional as TF
 import random
 
@@ -55,7 +56,8 @@ class ImageFilelist(data.Dataset):
 class HeightDataset(data.Dataset):
     def __init__(
         self,
-        root,
+        img_root,
+        gt_root,
         flist,
         gtlist, 
         flist_reader=default_flist_reader,
@@ -63,7 +65,8 @@ class HeightDataset(data.Dataset):
         gtloader=array_loader,
         transform_params = None
     ):
-        self.root = root
+        self.img_root = img_root
+        self.gt_root = gt_root
         self.imlist = flist_reader(flist)
         self.gtlist = flist_reader(gtlist)
         self.floader = floader
@@ -78,8 +81,8 @@ class HeightDataset(data.Dataset):
     def __getitem__(self, index):
         impath = self.imlist[index]
         gtpath = self.gtlist[index]
-        img = self.floader(os.path.join(self.root, impath))
-        gt = self.gtloader(os.path.join(self.root, gtpath)).unsqueeze(0)
+        img = self.floader(os.path.join(self.img_root, impath))
+        gt = self.gtloader(os.path.join(self.gt_root, gtpath)).unsqueeze(0).unsqueeze(0)
         if not self.transform is None:
             return(self.transform(img, gt))
         return {'image': transform.ToTensor()(img), 'mask' : gt}
@@ -116,22 +119,23 @@ class HeightDataset(data.Dataset):
     def transform(self, image, mask):
 
         image_ = transforms.ColorJitter(brightness=0.5, contrast=0.5)(image)
-        img = transforms.ToTensor()(image_)#.unsqueeze(0)
-        print(img.shape)
+        img = transforms.ToTensor()(image_).unsqueeze(0)
+        
         if not self.resize_size is None : 
             # Resize
   
-            img =  F.interpolate(img, size = self.resize_size, mode = "nearest")
+            img =  F.interpolate(img, size = (self.resize_size[0], self.resize_size[1]) , mode = "nearest")
 
             # h and w are swapped for landmarks because for images,
             # x and y axes are axis 1 and 0 respectively
-            mask = F.interpolate(mask, size = self.resize_size, mode = "nearest")
-        
+            mask = F.interpolate(mask, size = (self.resize_size[0], self.resize_size[1]), mode = "nearest")
+            img = img.squeeze(0)
+            mask = mask.squeeze(0)
         if not self.crop_size is None :
             # Random crop
             i, j, h, w = self.get_rcrop_params(img)
-            img = img[:, i:i+h, j:j+w]
-            mask = mask[ :,i:i+h, j:j+w]
+            img = img[:,i:i+h, j:j+w]
+            mask = mask[:,i:i+h, j:j+w]
             #print(img.shape)
             
         # Random vertical flipping
@@ -140,6 +144,7 @@ class HeightDataset(data.Dataset):
             mask = torch.flip(mask, (2, ))
             #print(img.shape)
         return {'image': img, 'mask' : mask}#transforms.ToPILImage()(img.squeeze(0)), 'mask' : mask}
+    
 class HeightDataset_fromlist(data.Dataset):
     def __init__(
         self,
