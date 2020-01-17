@@ -18,7 +18,7 @@ import os
 
 
 def test_simple(model, img_path, size, save_path):
-    print(size)
+ 
     input_width, input_height = size
     total_loss =0 
     toal_count = 0
@@ -43,7 +43,7 @@ def test_simple(model, img_path, size, save_path):
     pred_inv_depth = pred_inv_depth/np.amax(pred_inv_depth)
     save_filename = os.path.splitext(os.path.basename(img_path))[0] + '_depth' 
     io.imsave(os.path.join(save_path, save_filename + '.jpg'), pred_inv_depth)
-    np.save(os.path.join(save_path, save_filename + '.npy'), pred_inv_depth)
+    np.save(os.path.join(save_path, save_filename + '.npy'), pred_depth.data.cpu().numpy())
     print("saved to files "+ os.path.join(save_path, save_filename))
     Image.open(os.path.join(save_path, save_filename + '.jpg')).show()
     return(os.path.join(save_path, save_filename))
@@ -61,6 +61,28 @@ def get_depthmap_img(img_path, save_path, size, checkpoints_dir):
     
     print("We are done")
     return(path)
+
+
+def get_depthmap_from_list(img_path_list, save_path, checkpoints_dir):
+    """
+    get the depthmap from a list of images paths 
+    """
+    opt = TrainOptions()
+    #print(opt)
+    opt.gpu_ids = '0,1'
+    opt.isTrain = True
+    opt.checkpoints_dir = checkpoints_dir
+    opt.name = 'test_local/'
+    paths = []
+    model = create_model(opt)
+    for img_path in img_path_list: 
+        size = Image.open(img_path).size
+        print(size)
+        path = test_simple(model, img_path, size,save_path)
+        paths.append(path)
+    
+    print("We are done")
+    return(paths)
 
 def default_transforms():
     flip = torchvision.transforms.functional.hflip
@@ -103,8 +125,9 @@ def test_nimage(model, img_path, size, save_path, transforms_):
         pred_inv_depth[i] /= np.max(pred_inv_depth[i])
 
     for i in range(nimages):
-        save_filename = os.path.splitext(os.path.basename(img_file))[0] + '_depth' + str(i) + '.jpg'
-        io.imsave(os.path.join(save_path, save_filename), pred_inv_depth[i])
+        save_filename = os.path.splitext(os.path.basename(img_file))[0] + '_depth' + str(i) 
+        np.save(os.path.join(save_path, save_filename + '.npy'), pred_depth[i])
+        io.imsave(os.path.join(save_path, save_filename + '.jpg'), pred_inv_depth[i])
         print("Image saved to "+ os.path.join(save_path, save_filename))
         Image.open(os.path.join(save_path, save_filename)).show()
 
@@ -163,10 +186,10 @@ def test_nimage_npy(model, img_path, size, save_path, transforms_, indices_flip)
 if __name__ == "__main__":
     img_path = '../DataSV/milacropresize.jpg'
     save_path = '.'
-    size = [512,512]
+    #size = [512,512]
     opt = TrainOptions().parse()
     model = create_model(opt)
-    test_simple(model, img_path, size,save_path)
+    test_simple(model, img_path, save_path)#size,save_path)
     print("We are done")
 
 
