@@ -59,10 +59,13 @@ The json files contain the following information:
 
 The metric depth map is recovered from the depth images according to the process presented above in the data description.
 The pinhole camera model is applied to recover the 3D metric coordinates. 
-However because some points are very very far away from the camera we end up with heights that can seem outliers to the distribution. 
-Our goal is to find a reference 0 level(ideally ground, where the camera sits) in order to compute height.
- However, because of the aforementioned issue, we can't just shift the min z value to 0. 
- In a first approach, what we will do is take the min value on the first 20 meters and consider that the 0 must be in these first 20 meters.
+However because some points are very very far away from the camera we end up with heights that can seem outliers to the distribution (this is likely  due to encoding errors) - e.g. a few pixels will have very negative heights.  
+We plan on training a height estimator from image inputs, and need to find a reference 0 level(ideally that would be ground, where the camera sits) in order to compute height.
+ However, we don't have access to the level of the ground at the camera location, and because of the aforementioned issue, we can't just shift the min z value to 0. 
+ Nevertheless, we need to have a consistent way of picking the 0-level in order to have a relevant target in order to train a height estimation model. Encoding errors that have an incidence on height are unlikely to happen for close objects, so we took the center point in the first front row of pixels (the bottom of the image) as zero. 
+ This is just one way of choosing the zero-reference, the only thing to keep in mind is that the choice of this reference should be consistent across images.
+ 
+
 
 ### Pinhole camera model
  We consider a pinhole camera model. 
