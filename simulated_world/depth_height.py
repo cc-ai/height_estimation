@@ -85,7 +85,13 @@ def get_intrinsic_matrix_vFOV(H,W,FOVy):
 
 def rotation_matrix_pitch(pitch):
     """
-    pitch : pitch in degrees
+    Get rotation matrix around x-axis 
+    
+    Arguments:
+        pitch {float} -- pitch in degrees
+        
+    Returns: 
+       {np.array} -- 3*3 rotation matric
     """
     pitch_ = radians(pitch)
     return (np.array(
@@ -134,17 +140,18 @@ def get_3D_coords(depth_metric, inv_Kc, camera_height, pitch = 0):
     coords_proj[:,1] = - coords_proj[:,1]  + camera_height
     return(coords_proj)
 
-def get_height(img_file, json_file, water_height = 0.45):
+def get_height(img_file, json_file,sky_value = np.inf,  water_height = 0.45):
     """
+    Compute 3D coordinates and height map from simulated data
     Arguments:
         img_file{str} : path to depth img file
         json_file{str} : path to json
         water_height {float} : height of water wrt to ground in cm
     Returns: 
-        depth_metric
-        coords
-        height map np.array
-        params (camera parameters) 
+        depth_metric {np.array} : metric depth map 
+        coords {np.array} : 3D coordinates array of size H*W*3, for each pixel, the coordinates are specified as (x (horizontal), y (vertical (height)), z (depth))
+        height_array {np.array} : height map (2nd axis of the 3D coordinates, with the sky clipped at sky_value)
+        params {dict} : dictionary of camera parameters
     """
     params = get_camera_params_from_json(json_file, water_height)
     print(params)
@@ -167,14 +174,33 @@ def get_height(img_file, json_file, water_height = 0.45):
     height_array = coords[:, 1].reshape((H,W))
     
     #shift heigths to start at 0 
-    #height_array -= np.min(height_array)
-    #clip sky to -100
-    height_array[sky0, sky1] = -100
+    #clip sky to some value 
+    height_array[sky0, sky1] = sky_value
 
     return(depth_metric, coords, height_array, params)
 
+def set_zero_reference(height_array, leave_untouched = None):
+    """
+    Get shifted height array where zero is taken as corresponding to the bottom row middle pixel's value
+    Typically, leave untouched sky pixels. 
+    Arguments:
+        img_file{str} : path to depth img file
+        json_file{str} : path to json
+        water_height {float} : height of water wrt to ground in cm
+    Returns: 
+        depth_metric {np.array} : metric depth map 
+    """
+    H, W = height_array.shape 
+    ref = height_array[H-1, W//2]
+    if leave_untouched is not None:
+        height_array[height_array != leave_untouched] -= ref
+    else:
+        height_array -= ref
+    return(height_array)
+
 def fix_ground_outlier(height_array, seg, depth_array, depth_threshold):
     """
+    Alternative way of setting the zero reference - /!\ drawback is that it is not a consistent way of choosing the referece
     It can happen that there are outlier height points - especially for far away points
     The goal is to set the zero to correspond to some point of the ground in order to compute height
     However, due to outlier points, we canot just shift the whole height map using the minimum height value. 
