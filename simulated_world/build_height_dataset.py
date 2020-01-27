@@ -17,8 +17,6 @@ opts =  parser.parse_args()
 
 
 depth_path = os.path.join(opts.simfolder, 'Depth/')
-seg_path = os.path.join(opts.simfolder, 'Segmentation/')
-im_path = os.path.join(opts.simfolder, 'Normal/')
 json_path = os.path.join(opts.simfolder, 'JSON/')
 
 depth_paths = glob.glob(depth_path + '*')
