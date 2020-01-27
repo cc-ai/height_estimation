@@ -1,5 +1,19 @@
 # Simulator data
 
+## Quick usage
+
+This code enables you to get metric depth maps and height maps from the images of our simulator.   
+
+Run :  
+`python build_height_dataset.py --simfolder SIMULATED_DATA_FOLDER --output_path  SAVE_PATH`
+
+In our simulator, we set the `far`parameter of the camera (how far we compute depth until) to be 1000m. In case that should change, you can add the argument `--far FAR_PARAMETER`. 
+The `SIMULATED_DATA_FOLDER`should contain four folder names `Depth` (containing images of depth maps output from our simulator) and `JSON`containing json files with the camera parameters.  
+Running `build_height_dataset.py` will save images of the inverse log depth map, json files of camera parameters,  and numpy arrays of height maps. 
+
+In the height maps, the sky will have value `inf`.
+
+
 ## Description of the data
 The data from the simulator provides for each shot of the world: 
 - Original image
