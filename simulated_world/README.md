@@ -16,8 +16,9 @@ In the height maps, the sky will have value `inf`.
 
 ## Description of the data
 The data from the simulator provides for each shot of the world: 
-- Original image
+- Original image (non-flooded)
 - Flooded image 
+- Binary mask of the area of the flood
 - Depth image
 - Semantic segmentation image
 - json file with camera parameters
@@ -42,7 +43,7 @@ The depth maps are provided as RGBA images. Depth is encoded in the the followin
       
 
 ### Segmentation images 
-Segmentation masks are provided for the flooded version of the images. 
+Segmentation masks are provided for the flooded version of the images. The 10 classes were merged from the [Cityscapes](https://www.cityscapes-dataset.com/) dataset labels. 
 The following table provides the correspondence between classes and colors: 
 
  
