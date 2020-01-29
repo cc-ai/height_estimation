@@ -1,0 +1,48 @@
+img_root : "/network/tmp1/ccai/data/Unity1000R/Normal/"
+#'../../CARLA_merged/'
+#"/network/tmp1/ccai/data/Unity600R/Normal/"
+gt_root : "/network/tmp1/ccai/data/tengmeli/Unity1000R/Heights_corrected_depth_20/"
+#'../../CARLA_merged/'
+#'/network/tmp1/ccai/data/tengmeli/sim_dataset_12182019/Heights_corrected_depth_20/'
+#'../../CARLA_merged/'
+img_train: 'train_img_1000.txt'
+#'../data/train_img_sim.txt'
+img_test: 'test_img_1000.txt'
+#'../data/test_img_sim.txt'
+height_train: 'train_height_1000.txt'
+ #'../data/train_height_sim.txt'
+height_test: 'test_height_1000.txt'
+#'../data/test_height_sim.txt'
+
+#Comet configuration
+comet_exp: True
+comet_key: "JAQ6zQMoTH7snvbIkpjeBswPW"
+previous_experiment: ""
+project_name: 'Unity1000' #carla_height_predictor'
+
+lr : 0.003
+
+batch_size: 4
+epochs: 1000
+leaky_lambda: 0.5
+leaky_negative_slope: 0.01
+mask_val: null
+mask_sky : 0
+
+max_iter: 1000000
+image_save_iter: 100
+display_size: 4
+
+input_depth: True
+
+
+transforms_params : 
+    #resize the images before random crop - height width 
+    resize_size: [576, 1024]
+    #null 
+    #[576, 1024]
+    crop_size: [512, 512]
+
+#save checkpoint every N iteration
+save_checkpoint : 200
+checkpoints_dir: '../checkpoints_inverse_height'
