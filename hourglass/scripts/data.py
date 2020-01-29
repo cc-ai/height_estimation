@@ -83,8 +83,11 @@ class HeightDataset(data.Dataset):
         gtpath = self.gtlist[index]
         img = self.floader(os.path.join(self.img_root, impath))
         gt = self.gtloader(os.path.join(self.gt_root, gtpath)).unsqueeze(0).unsqueeze(0)
+       # gt = 1/(gt + 1)
+       # gt[gt == 1/(-100 + 1)] = 0
         if not self.transform is None:
             return(self.transform(img, gt))
+        
         return {'image': transform.ToTensor()(img), 'mask' : gt}
     
     def __len__(self):
@@ -129,8 +132,8 @@ class HeightDataset(data.Dataset):
             # h and w are swapped for landmarks because for images,
             # x and y axes are axis 1 and 0 respectively
             mask = F.interpolate(mask, size = (self.resize_size[0], self.resize_size[1]), mode = "nearest")
-            img = img.squeeze(0)
-            mask = mask.squeeze(0)
+        img = img.squeeze(0)
+        mask = mask.squeeze(0)
         if not self.crop_size is None :
             # Random crop
             i, j, h, w = self.get_rcrop_params(img)
@@ -196,6 +199,7 @@ class HeightDataset_fromlist(data.Dataset):
         Returns:
             tuple: params (i, j, h, w) to be passed to ``crop`` for random crop.
         """
+
         h, w = img.shape[1:]
         th, tw =  self.crop_size
         if w == tw and h == th:
