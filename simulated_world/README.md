@@ -92,7 +92,7 @@ Let <img src = " https://latex.codecogs.com/gif.latex?$K_c$"> the camera intrins
 
 where:  
 
-- <img src = "https://latex.codecogs.com/gif.latex?%24%24%20f_x%20%24%24"> , <img src = "https://latex.codecogs.com/gif.latex?%24%24%20f_y%20%24%24">  are the focal lengths along the <img src = " https://latex.codecogs.com/gif.latex?$x$"> and <img src = " https://latex.codecogs.com/gif.latex?$y$"> axis respectively (<img src = " https://latex.codecogs.com/gif.latex?$x$"> is width axis on 2D image, <img src = " https://latex.codecogs.com/gif.latex?$y$"> is height axis on 2D image, <img src = " https://latex.codecogs.com/gif.latex?$z$"> is the othogonal direction)
+- <img src = "https://latex.codecogs.com/gif.latex?%24%24%20f_x%20%24%24"> , <img src = "https://latex.codecogs.com/gif.latex?%24%24%20f_y%20%24%24">  are the focal lengths along the <img src = "https://latex.codecogs.com/gif.latex?$x$"> and <img src = "https://latex.codecogs.com/gif.latex?$y$"> axis respectively (<img src = "https://latex.codecogs.com/gif.latex?$x$"> is width axis on 2D image, <img src = "https://latex.codecogs.com/gif.latex?$y$"> is height axis on 2D image, <img src = "https://latex.codecogs.com/gif.latex?$z$"> is the orthogonal direction)
 - <img src = "https://latex.codecogs.com/gif.latex?%24%24%20c_x%20%24%24"> , <img src = "https://latex.codecogs.com/gif.latex?%24%24%20c_y%20%24%24">  are the pixel coordinates of the principal point on the image plane (ie point aligned with the optical axis of the camera (in our case it is the middle of the image))  
 
 <img src = "https://latex.codecogs.com/gif.latex?%24%24%20f_x%20%24%24"> and <img src = https://latex.codecogs.com/gif.latex?%24%24%20f_y%20%24%24$> can be computed using the horizontal and vertical field of view:  
