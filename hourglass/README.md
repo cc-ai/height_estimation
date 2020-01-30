@@ -6,6 +6,11 @@ We propose to leverage data from our simulator and train a height estimation mod
 
 While methods for single image depth estimation have been investigated for many years, we have found no work in height estimation from street view scenes images. However, these two problems have some similarities, so we took inspiration from depths estimators to build our height estimator. 
 
+### Target
+Our current model outputs metric height maps from street view images inputs. 
+Currently, we predict the height of all the pixels that do not correspond to sky. 
+see **Next steps** for ideas on how to handle sky for further work. 
+
 ### Ground truth height maps
 
 Ground truth depths maps are extracted directly from our simulator and  ground truth height maps can be computed using the pinhole camera model ([See the derivation](https://github.com/cc-ai/height_estimation/tree/master/simulated_world)). 
@@ -15,6 +20,8 @@ However, we noticed that there were sometimes some errors in the height maps (mo
 The aforementioned idea of picking the lowest point as zero would lead to very inconsistent flood areas, if we then pick a physically plausible flood level in a range of (0 - 10m) for example. 
 
 Nevertheless, we still need to have a consistent way of picking the zero. We chose to take the middle front pixel (bottom row of the image) as the reference for the zero, and shift the rest of the dataset accordingly. 
+
+The sky is assigned to *inf*.
 
 ### The network
 
@@ -27,4 +34,33 @@ The code for the network was inspired from [this implementation]( https://github
 Architecture of the hourglass network (Image modified from [here]( https://arxiv.org/pdf/1604.03901.pdf )). 
 Each block is a modified inception module, except blocks H which are Conv 3x3.
 
+### Loss functions 
 
+As of now, we are using pixel wise L2 loss with a mask for the pixels corresponding to the sky (because the sky is *inf* in our ground truth).
+We could imagine not masking the sky is the target is chosen differently (See **Next Steps**). 
+
+In our case, we care about getting heights that are close to the ground right, acare a little less about getting the heights of the parts that are > 10m high right, since it will not affect our masks of areas that should be flooded. 
+We implemented a loss that considers this aspect of the problem, but haven't studied extensively which parameters to choose.  
+
+### A note on training data
+
+We used this model separately on two datasets from simulators. 
+We trained this model on a first set of 600 images from our simulator. 
+We also trained this model on 8500 images extracted from the CARLA simulator under different weather conditions (6500 training, 2000 testing). However the scenes in this dataset can be very similar, and were taken at a high frequency leading to some frames being redundant. More over, when acquiring these images, no special care was given to make sure that they could correspond to street scenes encountered in real images. For example, we spotted frames where the back of a pedestrian close to the camera would fill the whole field-of-view. When using this dataset, some care would have to be taken to remove "problematic" images.
+
+### Next steps
+
+From our early study results, we notice that the height maps predicted are not smooth. For example, iscontinuities in texture/color on a building facade lead to discontinuities in heights. We could imagine getting a **smoother output** using the following :  
+
+- Adding [**scale-invariant gradient loss**](https://arxiv.org/pdf/1612.02401.pdf) which has been used successfully for [3D Ken Burns effect from single view image](https://arxiv.org/abs/1909.05483). 
+This loss would penalize relative height errors between neighbouring pixels. 
+In the task of depth estimation *"This loss stimulates the network to compare depth values within a local neighbourhood for each pixel. It emphasizes depth discontinuities, stimulates sharp edges in the depth map and increases smoothness within homogeneous regions."* 
+
+- Post-processing the height map (e.g. apply MRF) 
+
+**Handling sky**: It is not possible to predict the sky area in our target if it is kept at *inf*. It is not that much of an issue if we assume that we compute segmentation masks for the sky (at inference time too to "fill" the sky area) but with a well chosen target we could make the prediction on the whole image. 
+One idea would be to take the target as the inverse depth <img src =https://latex.codecogs.com/gif.latex?$1/(depth + 1)$> . 
+The sky would then be mapped to 0. 
+However we would need to make some modifications in our ground truth. Indeed, our current way of choosing the zero level does not guarantee that there are no negative heights. 
+
+**Using real data**  
