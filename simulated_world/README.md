@@ -7,15 +7,15 @@ This code enables you to get metric depth maps and height maps from the images o
 Run :  
 `python build_height_dataset.py --simfolder SIMULATED_DATA_FOLDER --output_path  SAVE_PATH`
 
-In our simulator, we set the `far`parameter of the camera (how far we compute depth until) to be 1000m. In case that should change, you can add the argument `--far FAR_PARAMETER`. 
-The `SIMULATED_DATA_FOLDER`should contain four folder names `Depth` (containing images of depth maps output from our simulator) and `JSON`containing json files with the camera parameters.  
+In our simulator, we set the default `far`parameter of the camera (the limit until which we compute depth) to be 1000m. In case that should change, you can add the argument `--far FAR_PARAMETER`. 
+The `SIMULATED_DATA_FOLDER`should contain four folder names `Depth` (containing images of depth maps output from our simulator) and `JSON`, containing json files with the camera parameters.  
 Running `build_height_dataset.py` will save images of the inverse log depth map, json files of camera parameters,  and numpy arrays of height maps. 
 
-In the height maps, the sky will have value `inf`.
+In the height maps, the sky will have value `inf`, since we do not try to compute its depth.
 
 
 ## Description of the data
-The data from the simulator provides for each shot of the world: 
+The data from the simulator provides for each snapshot of the world: 
 - Original image (non-flooded)
 - Flooded image 
 - Binary mask of the area of the flood
@@ -29,13 +29,13 @@ The depth maps are provided as RGBA images. Depth is encoded in the the followin
  - The information from the simulator is (1 - LinearDepth (in [0,1])).   
  `far` corresponds to the furthest distance to the camera included in the depth map. 
         `LinearDepth * far` gives the real metric distance to the camera. 
--  depth is first divided in 31 slices encoded in R channel with values ranging from 0 to 247 
-- each slice is divided again in 31 slices, whose value is encoded in G channel
-- each of the G slices is divided into 256 slices, encoded in B channel
+- depth is first divided in 31 slices encoded in the R channel with values ranging from 0 to 247 
+- each slice is divided again in 31 slices, whose values are encoded in the G channel
+- each of the G slices is divided into 256 slices, encoded in the B channel
     In total, we have a discretization of depth into `N = 31*31*256 - 1` possible values, each value covering a range of 
     far/N meters.   
-    Note that, what we encode here is  `1 - LinearDepth` so that the furthest point is [0,0,0] (that is sky) 
-    and the closest point[255,255,255] 
+    Note that, what we encode here is  `1 - LinearDepth` so that the furthest point is [0,0,0] (which is sky) 
+    and the closest point is [255,255,255] 
     The metric distance associated to a pixel whose depth is (R,G,B) is : 
     d = (far/N) * [((247 - R)//8)*256*31 + ((247 - G)//8)*256 + (255 - B)]  
     This is the same as :
@@ -53,20 +53,22 @@ The following table provides the correspondence between classes and colors:
 |Ground|Horizontal ground-level structures (road, roundabouts, parking)  |[55, 55, 55, 255] |![#373737](https://placehold.it/15/373737/000000?text=+)
 | Building|Buildings, walls, fences| [255, 212, 0, 255]|![#ffd400](https://placehold.it/15/ffd400/000000?text=+)
 |Traffic items| Poles, traffic signs, traffic lights | [0, 255, 255, 255]|![#00ffff](https://placehold.it/15/00ffff/000000?text=+)
-|Vegetation| Tree, hedge, all kinds of vertical vegetation | [0, 255, 0, 255]|![#00ff00](https://placehold.it/15/00ff00/000000?text=+)
-|Terrain| Grass, all kinds of vertical vegetation, soil, sand | [255, 97, 0, 255] | ![#ff6100](https://placehold.it/15/ff6100/000000?text=+)
+|Vegetation| Trees, hedges, all kinds of vertical vegetation | [0, 255, 0, 255]|![#00ff00](https://placehold.it/15/00ff00/000000?text=+)
+|Terrain| Grass, all kinds of horizontal vegetation, soil, sand | [255, 97, 0, 255] | ![#ff6100](https://placehold.it/15/ff6100/000000?text=+)
 |Sky| Open sky | [8, 19, 49, 255] | ![#081331](https://placehold.it/15/081331/000000?text=+)
 |Car| This includes only cars | [255, 0, 0, 255] | ![#ff0000](https://placehold.it/15/ff0000/000000?text=+)
-|Trees| Trees are seen as 2D in Unity and not segmented |  [0, 0, 0, 0]
+|Trees| Some trees are seen as 2D in Unity and not segmented |  [0, 0, 0, 0]
 |Truck| Vehicle with greater dimensions  than car (fixed threshold TBD)
 |Person| Not in the dataset for now| 
+
+ <!--- Note: figure out the Tree labels, since this may introduce noise in the training --->
 
 ### JSON files
 
 The json files contain the following information:
 - `CameraPosition`: camera *absolute* coordinates  in meters- the origin is not the ground but the origin of the simulated world
 - `CameraRotation`: pitch (x) , yaw (y), roll (z) in degrees from 0 to 360 (for pitch the direction of the rotation is from down to up)
-- `CameraFar`: how far do we compute the depth map until
+- `CameraFar`: how far we compute the depth map 
 - `CameraFOV`: vertical field of view in degrees
 - `WaterLevel`: absolute level of water in meters
 
@@ -74,10 +76,10 @@ The json files contain the following information:
 
 The metric depth map is recovered from the depth images according to the process presented above in the data description.
 The pinhole camera model is applied to recover the 3D metric coordinates. 
-However because some points are very very far away from the camera we end up with heights that can seem outliers to the distribution (this is likely  due to encoding errors) - e.g. a few pixels will have very negative heights.  
+However, because some points are very very far away from the camera, we end up with heights that can seem outliers to the distribution (this is likely due to encoding errors) - e.g. a few pixels will have very negative heights.  
 We plan on training a height estimator from image inputs, and need to find a reference 0 level(ideally that would be ground, where the camera sits) in order to compute height.
  However, we don't have access to the level of the ground at the camera location, and because of the aforementioned issue, we can't just shift the min z value to 0. 
- Nevertheless, we need to have a consistent way of picking the 0-level in order to have a relevant target in order to train a height estimation model. Encoding errors that have an incidence on height are unlikely to happen for close objects, so we took the center point in the first front row of pixels (the bottom of the image) as zero. 
+ Nevertheless, we need to have a consistent way of picking the 0-level in order to have a relevant target to train a height estimation model. Encoding errors that have an incidence on height are unlikely to happen for close objects, so we took the center point in the first front row of pixels (the bottom of the image) as zero. 
  This is just one way of choosing the zero-reference, the only thing to keep in mind is that the choice of this reference should be consistent across images.
  
 
@@ -90,7 +92,7 @@ Let <img src = " https://latex.codecogs.com/gif.latex?$K_c$"> the camera intrins
 
 where:  
 
-- <img src = "https://latex.codecogs.com/gif.latex?%24%24%20f_x%20%24%24"> , <img src = "https://latex.codecogs.com/gif.latex?%24%24%20f_y%20%24%24">  are the focal lengths along the <img src = " https://latex.codecogs.com/gif.latex?$x$"> and <img src = " https://latex.codecogs.com/gif.latex?$y$"> axis respectively (<img src = " https://latex.codecogs.com/gif.latex?$x$"> is width axis on 2D image, <img src = " https://latex.codecogs.com/gif.latex?$y$"> is height axis on 2D image, <img src = " https://latex.codecogs.com/gif.latex?$z$"> is the othogonal direction)
+- <img src = "https://latex.codecogs.com/gif.latex?%24%24%20f_x%20%24%24"> , <img src = "https://latex.codecogs.com/gif.latex?%24%24%20f_y%20%24%24">  are the focal lengths along the <img src = "https://latex.codecogs.com/gif.latex?$x$"> and <img src = "https://latex.codecogs.com/gif.latex?$y$"> axis respectively (<img src = "https://latex.codecogs.com/gif.latex?$x$"> is width axis on 2D image, <img src = "https://latex.codecogs.com/gif.latex?$y$"> is height axis on 2D image, <img src = "https://latex.codecogs.com/gif.latex?$z$"> is the orthogonal direction)
 - <img src = "https://latex.codecogs.com/gif.latex?%24%24%20c_x%20%24%24"> , <img src = "https://latex.codecogs.com/gif.latex?%24%24%20c_y%20%24%24">  are the pixel coordinates of the principal point on the image plane (ie point aligned with the optical axis of the camera (in our case it is the middle of the image))  
 
 <img src = "https://latex.codecogs.com/gif.latex?%24%24%20f_x%20%24%24"> and <img src = https://latex.codecogs.com/gif.latex?%24%24%20f_y%20%24%24$> can be computed using the horizontal and vertical field of view:  
