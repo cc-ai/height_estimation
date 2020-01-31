@@ -1,10 +1,23 @@
 # End-to-End height estimator
 
-Real images of floods do not come with annotation on the height of the flood. Height information is very important for our purpose of generating realistiv visualizations of the impacts of climate change. Ideally, we would like to control the level of the flood  in order to match climate predictions, or at least physically plausible levels. In addition, we would like to be able to specify this level in an easily understandable unit (meters ideally) to link this more easily with the reality.  
+Real images of floods do not come with annotation on the height of the flood. Height information is very important for our purpose of generating realistic visualizations of the impacts of climate change. Ideally, we would like to control the level of the flood  in order to match climate predictions, or at least physically plausible levels. In addition, we would like to be able to specify this level in an easily understandable unit (meters ideally) to link this more easily with the reality.  
 
 We propose to leverage data from our simulator and train a height estimation model from single-view images. Indeed, images of houses flooded to any chosen height can be generated in the simulator.
 
 While methods for single image depth estimation have been investigated for many years, we have found no work in height estimation from street view scenes images. However, these two problems have some similarities, so we took inspiration from depths estimators to build our height estimator. 
+
+### Quick usage
+#### Training the model
+Check the `config_train.yaml` file in the `config` folder to know which parameters to specify in your config file. 
+All images must be in the same folder, and all height maps as well. You need to specify the path to text files containing the basenames of the images and the height maps for the train and test set. 
+You can train the model running : 
+
+`python scripts/train.py --config config/config_train.yaml`
+
+#### Inference
+Check the `config_test_default.yaml` file in the `config` folder to know which parameters to specify in your config file. 
+
+`python scripts/test.py --config config/config_test_default.yaml --input INPUT_IMG_DIR --output_folder OUTPUT_dir --checkpoint PATH_TO_CHECKPOINT`
 
 ### Target
 Our current model outputs metric height maps from street view images inputs. 
