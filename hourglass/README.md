@@ -76,7 +76,7 @@ In the task of depth estimation *"This loss stimulates the network to compare de
 - Post-processing the height map (e.g. apply MRF) 
 
 **Handling sky**: It is not possible to predict the sky area in our target if it is kept at *inf*. It is not that much of an issue if we assume that we compute segmentation masks for the sky (at inference time too to "fill" the sky area) but with a well chosen target we could make the prediction on the whole image. 
-One idea would be to take the target as the inverse depth <img src =https://latex.codecogs.com/gif.latex?$1/(depth + 1)$> . 
+One idea would be to take the target as the inverse depth <img src ="https://latex.codecogs.com/gif.latex?$1/(depth + 1)$"> . 
 The sky would then be mapped to 0. 
 However we would need to make some modifications in our ground truth. Indeed, our current way of choosing the zero level does not guarantee that there are no negative heights. 
 
