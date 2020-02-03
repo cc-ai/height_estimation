@@ -58,8 +58,12 @@ We implemented a loss that considers this aspect of the problem, but haven't stu
 ### A note on training data
 
 We used this model separately on two datasets from simulators. 
-We trained this model on a first set of 600 images from our simulator. 
+We trained this model on a first set of 1000 images from our simulator. 
 We also trained this model on 8500 images extracted from the CARLA simulator under different weather conditions (6500 training, 2000 testing). However the scenes in this dataset can be very similar, and were taken at a high frequency leading to some frames being redundant. More over, when acquiring these images, no special care was given to make sure that they could correspond to street scenes encountered in real images. For example, we spotted frames where the back of a pedestrian close to the camera would fill the whole field-of-view. When using this dataset, some care would have to be taken to remove "problematic" images.
+
+### Results 
+
+You can find first results of experiments on the CARLA dataset [here](https://www.comet.ml/melisandeteng/carla-height-predictor/a26f852bf1c044fc80a009bb98c1fc26?experiment-tab=images) and on images from our simulator [here](https://www.comet.ml/melisandeteng/unity1000/af153d89d8be4596b2a49fa848552865?experiment-tab=images)
 
 ### Next steps
 
@@ -76,4 +80,4 @@ One idea would be to take the target as the inverse depth <img src =https://late
 The sky would then be mapped to 0. 
 However we would need to make some modifications in our ground truth. Indeed, our current way of choosing the zero level does not guarantee that there are no negative heights. 
 
-**Using real data**  
+**Using real data**  Further steps include testing this approach on real data. 
